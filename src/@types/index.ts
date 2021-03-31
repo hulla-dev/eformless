@@ -19,6 +19,7 @@ export type FieldHanderFunction = (event: ChangeEvent<HTMLInputElement>) => void
 /* -------------------------------------------------------------------------- */
 
 export type FormType = {
+  name: string
   fields: {
     [fieldName: string]: FieldType<unknown>
   }
@@ -39,4 +40,20 @@ export type ErrorType<T> = {
   function: string // name of the check function which resulted in error
   error: typeof Error // error object thrown from the check function
   message: string // error.message (for quicker access instead of double deconstruct)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                            Eformless context API                           */
+/* -------------------------------------------------------------------------- */
+export type ListedForms = {
+  [form: string]: FormType
+}
+
+export type ContextType = {
+  forms: ListedForms
+  addForm: (addedForm: FormType) => void
+  removeForm: (removedForm: string) => void
+  addFieldToForm: <T>(field: FieldType<T>, formName: keyof ListedForms) => void
+  removeFieldFromForm: (filedName: string, formName: keyof ListedForms) => void
+  clear: () => void
 }
