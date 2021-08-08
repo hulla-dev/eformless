@@ -1,14 +1,19 @@
-import { ErrorType } from '../@types'
+import { CheckFunction, ErrorType } from '../@types'
 import { notNull } from './typeguards'
 
 export const invokeCheckFunction = <T>(
   value: T,
   name: string,
-  checkFunction: (...args: unknown[]) => unknown,
+  checkFunction: CheckFunction<T>,
 ): ErrorType<T> | null => {
   try {
     // we attempt invoking check function, if it passes (is OK), returns null
-    checkFunction(value)
+    // ideally checkFunction should throw a customized error
+    const check = checkFunction(value)
+    // but in case checks are written with falsy values we generate an error message
+    if (!check) {
+      throw Error(`${checkFunction.name} check failed with value: ${check}`)
+    }
     return null
   } catch (error) {
     return {
@@ -24,7 +29,7 @@ export const invokeCheckFunction = <T>(
 export const checkErrors = <T>(
   value: T,
   name: string,
-  checkFunctions: Array<(...args: unknown[]) => unknown>,
+  checkFunctions: CheckFunction<T>[],
 ): ErrorType<T>[] => {
   const errors = checkFunctions.map((callback) => invokeCheckFunction(value, name, callback))
   return errors.filter(notNull)

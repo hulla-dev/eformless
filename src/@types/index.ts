@@ -12,7 +12,9 @@ export type FieldType<T> = {
   errors?: ErrorType<T>[]
 }
 
-export type FieldHanderFunction = (event: ChangeEvent<HTMLInputElement>) => void
+export type CheckFunction<T> = (value: T, ...args: unknown[]) => unknown
+
+export type FieldHandlerFunction = (event: ChangeEvent<HTMLInputElement>) => void
 
 /* -------------------------------------------------------------------------- */
 /*                                2. Form Types                               */
