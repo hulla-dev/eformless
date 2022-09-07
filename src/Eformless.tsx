@@ -16,10 +16,12 @@ const Eformless = (props: { children: React.ReactNode }): JSX.Element => {
   const removeForm = (removedFormName: keyof ListedForms) =>
     setEformless((prevState) => omit(removedFormName, prevState))
 
-  const addFieldToForm = (field: FieldType<unknown>, formName: keyof ListedForms) => {
+  // the constraint is necessary here, as TSX files have trouble parsing <T> generic
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-constraint
+  const addFieldToForm = <T extends unknown>(field: FieldType<T>, formName: keyof ListedForms) => {
     if (!eformless[formName]) {
       throw Error(
-        `[Eformless-Error]: Form ${formName} does not currently exist on eformless context.
+        `[eformless-error]: Form ${formName} does not currently exist on eformless context.
           Make sure to add it via 'addForm' first`,
       )
     } else {
@@ -40,7 +42,7 @@ const Eformless = (props: { children: React.ReactNode }): JSX.Element => {
         .includes(fieldName)
     ) {
       console.warn(
-        `[Eformless-Warning]: Form ${formName} does not contain field with name ${fieldName}.
+        `[eformless-warning]: Form ${formName} does not contain field with name ${fieldName}.
          Skipping the removal`,
       )
     } else {
@@ -64,7 +66,7 @@ const Eformless = (props: { children: React.ReactNode }): JSX.Element => {
       ...form,
       fields: objectMap(form.fields, clearFieldValue),
     })
-    // If form was specified, we clear a speicic form
+    // If form was specified, we clear a specific form
     if (formName) {
       if (formName in eformless) {
         setEformless((prevState) => ({
@@ -74,7 +76,7 @@ const Eformless = (props: { children: React.ReactNode }): JSX.Element => {
           },
         }))
       } else {
-        console.warn(`Form ${formName} does not exist. Nothing was cleared!`)
+        console.warn(`[eformless-warning]: Form ${formName} does not exist. Nothing was cleared!`)
       }
       // Otherwise we clear all forms
     } else {

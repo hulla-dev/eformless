@@ -1,48 +1,44 @@
-import { ChangeEvent, useState } from 'react'
-import { CheckFunction, ErrorType, FieldHandlerFunction, FieldType } from './@types'
+import { useState } from 'react'
+import { CheckFunction, ErrorType, FieldHandlerFunction, FieldResultType } from './@types'
 import { checkErrors } from './helpers/errorChecking'
 import { undefinedOnEmpty } from './helpers/typeguards'
-import { convertBackToType } from './helpers/convertBackToType'
+import { extractValue } from './helpers/conversion'
 
 const useField = <T>({
   value: passedValue,
-  name: passedName,
+  name,
   checkFunctions = [] as CheckFunction<T>[],
 }: {
   value: T
   name: string
+  withTypeConversion?: boolean
   checkFunctions?: CheckFunction<T>[]
-}): [FieldType<T>, FieldHandlerFunction, FieldHandlerFunction] => {
+}): [FieldResultType<T>, FieldHandlerFunction<T>, FieldHandlerFunction<T>] => {
   const [value, setValue] = useState(passedValue)
-  const [name, setName] = useState(passedName)
   const [errors, setErrors] = useState<ErrorType<T>[]>(checkErrors(value, name, checkFunctions))
-  const [wasBlurred, setWasBlurred] = useState<boolean>(false)
-  const [wasChanged, setWasChanged] = useState<boolean>(false)
+  const [changed, setChanged] = useState<boolean>(false)
+  const [blurred, setBlurred] = useState<boolean>(false)
   /* -------------------- 2. Handler functions definitions -------------------- */
-  const handleChange: FieldHandlerFunction = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value: eventValue, checked, type } = event.target
-    const coercedBack = convertBackToType(eventValue, checked, type)
-    setValue(coercedBack as T)
-    setName(name)
-    setErrors(checkErrors(value, name, checkFunctions))
-    setWasChanged(true)
+  const handleChange: FieldHandlerFunction<T> = (event) => {
+    const newVal = extractValue(event)
+    setValue(newVal)
+    setErrors(checkErrors(newVal, name, checkFunctions))
+    setChanged(true)
   }
 
-  const handleBlur: FieldHandlerFunction = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value: eventValue, checked, type } = event.target
-    const coercedBack = convertBackToType(eventValue, checked, type)
-    setValue(coercedBack as T)
-    setName(name)
-    setErrors(checkErrors(value, name, checkFunctions))
-    setWasBlurred(true)
+  const handleBlur: FieldHandlerFunction<T> = (event) => {
+    const newVal = extractValue(event)
+    setValue(newVal)
+    setErrors(checkErrors(newVal, name, checkFunctions))
+    setBlurred(true)
   }
 
-  const field: FieldType<T> = {
+  const field: FieldResultType<T> = {
     value,
     name,
     errors: undefinedOnEmpty(errors),
-    wasBlurred,
-    wasChanged,
+    changed,
+    blurred,
   }
 
   return [field, handleChange, handleBlur]

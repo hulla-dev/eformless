@@ -10,10 +10,10 @@ const useForm = (name: string, ...fields: FieldType<unknown>[]): FormType => {
   return {
     name,
     fields: groupedFields,
-    wasChanged: fields.some(({ wasChanged }) => wasChanged),
-    wasBlurred: fields.some(({ wasBlurred }) => wasBlurred),
-    allChanged: fields.every(({ wasChanged }) => wasChanged),
-    allBlurred: fields.every(({ wasBlurred }) => wasBlurred),
+    changed: fields.some(({ changed }) => changed),
+    blurred: fields.some(({ blurred }) => blurred),
+    allChanged: fields.every(({ changed }) => changed),
+    allBlurred: fields.every(({ blurred }) => blurred),
     errors: flatten(fields.map(({ errors }) => errors).filter(notUndefined)),
   }
 }

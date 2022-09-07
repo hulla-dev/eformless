@@ -1,3 +1,7 @@
+import type { ChangeEvent } from 'react'
+import type { HandlerEvents } from '../@types'
+import { isNativeEvent, isNativeWebEvent } from './typeguards'
+
 /**
  * Due to `React.ChangeEvent<T>` hard-coercing all `<input>` values to typeof string we are forced
  * to coerce the values back manually in this hackish way
@@ -28,16 +32,33 @@ export const convertBackToType = (value: string, checked: boolean, type: string)
     case 'reset':
     case 'hidden':
     case 'submit':
-      throw Error(`The type of ${type} is unsupported as it an uncontrolled type in React.
+      throw new Error(`The type of ${type} is unsupported as it an uncontrolled type in React.
       Please refer to: https://reactjs.org/docs/uncontrolled-components.html for more info.
       
       This likely is a mistake and you did not intend to pass onChange / onBlur handler here in
       the first place`)
     // Corner case - Deprecated type
     case 'datetime':
-      throw Error("Detected deprecated input type 'datetime'. Use 'datetime-local' instead")
+      throw new Error("Detected deprecated input type 'datetime'. Use 'datetime-local' instead")
     // represents all the remaining <input type=""> attributes, all of them are string
     default:
       return value
   }
+}
+
+export const extractValue = <T>(
+  event: HandlerEvents<T>,
+): T => {
+  if (isNativeWebEvent(event)) {
+    // Here we don't mind falsely converting HTMLTextAreaElement to InputElement.
+    // They share for us relevant properties and the fact checked does not exist
+    // on text area element does not matter to us
+    const { value, checked, type } = (event as ChangeEvent<HTMLInputElement>).target
+    return convertBackToType(value, checked, type) as T
+  }
+  if (isNativeEvent(event)) {
+    // we can be guaranteed T = string in this case
+    return event.nativeEvent.text as unknown as T
+  }
+  return event
 }

@@ -20,8 +20,8 @@ export const invokeCheckFunction = <T>(
       name,
       value,
       function: checkFunction.name,
-      error: error,
-      message: error.message,
+      error: (error as typeof Error),
+      message: (error as Error).message,
     }
   }
 }

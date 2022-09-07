@@ -1,4 +1,12 @@
-import { ChangeEvent } from 'react'
+import type { ChangeEvent } from 'react'
+import type { NativeSyntheticEvent, TextInputChangeEventData } from 'react-native'
+
+export type HandlerEvents<T> =
+  | ChangeEvent<HTMLInputElement>
+  | ChangeEvent<HTMLTextAreaElement>
+  | NativeSyntheticEvent<TextInputChangeEventData>
+  | T
+
 
 /* -------------------------------------------------------------------------- */
 /*                              1. Field Handling                             */
@@ -7,14 +15,16 @@ import { ChangeEvent } from 'react'
 export type FieldType<T> = {
   value: T
   name: string
-  wasBlurred: boolean
-  wasChanged: boolean
+  changed: boolean
+  blurred: boolean
   errors?: ErrorType<T>[]
 }
 
+export type FieldResultType<T> = Readonly<FieldType<T>>
+
 export type CheckFunction<T> = (value: T, ...args: unknown[]) => unknown
 
-export type FieldHandlerFunction = (event: ChangeEvent<HTMLInputElement>) => void
+export type FieldHandlerFunction<T> = (event: HandlerEvents<T>) => void
 
 /* -------------------------------------------------------------------------- */
 /*                                2. Form Types                               */
@@ -25,8 +35,8 @@ export type FormType = {
   fields: {
     [fieldName: string]: FieldType<unknown>
   }
-  wasChanged: boolean
-  wasBlurred: boolean
+  changed: boolean
+  blurred: boolean
   allChanged: boolean
   allBlurred: boolean
   errors?: ErrorType<unknown>[]
