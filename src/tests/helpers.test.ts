@@ -1,4 +1,4 @@
-import { flatten } from '../helpers/arrays'
+import { flatten, isOrIncludes } from '../helpers/arrays'
 import { merge, objectMap, omit } from '../helpers/objects'
 import { convertBackToType, extractValue } from '../helpers/conversion'
 
@@ -7,12 +7,20 @@ describe('Helpers test', () => {
   describe('Arrays' , () => {
     const empty = []
     const nested = [['foo'], ['bar']]
-      test('[flatten] - Empty array', () => {
-        expect(flatten(empty)).toEqual(expect.arrayContaining([]))
-      })
-      test('[flatten] - Nested array', () => {
-        expect(flatten(nested)).toStrictEqual(['foo', 'bar'])
-      })
+    test('[flatten] - Empty array', () => {
+      expect(flatten(empty)).toEqual(expect.arrayContaining([]))
+    })
+    test('[flatten] - Nested array', () => {
+      expect(flatten(nested)).toStrictEqual(['foo', 'bar'])
+    })
+    test('[isOrIncludes] - Base comparison', () => {
+      expect(isOrIncludes('a', 'b')).toBeFalsy()
+      expect(isOrIncludes('a', 'a')).toBeTruthy()
+    })
+    test('[isOrIncludes] - Arrays', () => {
+      expect(isOrIncludes('a', ['a', 'b'])).toBeTruthy()
+      expect(isOrIncludes('a', ['b', 'c'])).toBeFalsy()
+    })
   })
   describe('Objects', () => {
     const obj = { foo: 1, bar: 'bar', baz: new Date()}
