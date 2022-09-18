@@ -13,30 +13,34 @@ const useField = <T>({
   name: string
   withTypeConversion?: boolean
   checkFunctions?: CheckFunction<T>[]
-}): [FieldResultType<T>, FieldHandlerFunction<T>, FieldHandlerFunction<T>] => {
+}, ...extraCheckFunctions: CheckFunction<T>[]
+): [FieldResultType<T>, FieldHandlerFunction<T>, FieldHandlerFunction<T>] => {
+  const functionsToRun = [...checkFunctions, ...extraCheckFunctions]
   const [value, setValue] = useState(passedValue)
-  const [errors, setErrors] = useState<ErrorType<T>[]>(checkErrors(value, name, checkFunctions))
+  const [errors, setErrors] = useState<ErrorType<T>[]>(checkErrors(value, name, functionsToRun))
   const [changed, setChanged] = useState<boolean>(false)
   const [blurred, setBlurred] = useState<boolean>(false)
   /* -------------------- 2. Handler functions definitions -------------------- */
   const handleChange: FieldHandlerFunction<T> = (event) => {
     const newVal = extractValue(event)
     setValue(newVal)
-    setErrors(checkErrors(newVal, name, checkFunctions))
+    setErrors(checkErrors(newVal, name, functionsToRun))
     setChanged(true)
   }
 
   const handleBlur: FieldHandlerFunction<T> = (event) => {
     const newVal = extractValue(event)
     setValue(newVal)
-    setErrors(checkErrors(newVal, name, checkFunctions))
+    setErrors(checkErrors(newVal, name, functionsToRun))
     setBlurred(true)
   }
 
   const field: FieldResultType<T> = {
     value,
     name,
+    error: !!errors.length,
     errors: undefinedOnEmpty(errors),
+    errorMessage: (errors[0])?.message || '',
     changed,
     blurred,
   }

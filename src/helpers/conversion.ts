@@ -60,5 +60,6 @@ export const extractValue = <T>(
     // we can be guaranteed T = string in this case
     return event.nativeEvent.text as unknown as T
   }
+  // otherwise we fall back to whatever value was passed as first argument
   return event
 }

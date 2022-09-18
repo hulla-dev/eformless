@@ -17,7 +17,9 @@ export type FieldType<T> = {
   name: string
   changed: boolean
   blurred: boolean
+  error: boolean,
   errors?: ErrorType<T>[]
+  errorMessage: string,
 }
 
 export type FieldResultType<T> = Readonly<FieldType<T>>
