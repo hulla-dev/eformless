@@ -7,7 +7,6 @@ export type HandlerEvents<T> =
   | NativeSyntheticEvent<TextInputChangeEventData>
   | T
 
-
 /* -------------------------------------------------------------------------- */
 /*                              1. Field Handling                             */
 /* -------------------------------------------------------------------------- */
@@ -22,7 +21,7 @@ export type FieldType<T> = {
   errorMessage: string,
 }
 
-export type FieldResultType<T> = Readonly<FieldType<T>>
+export type FieldResultType<T> = FieldType<T>
 
 export type CheckFunction<T> = (value: T, ...args: unknown[]) => unknown
 
@@ -55,6 +54,8 @@ export type ErrorType<T> = {
   error: typeof Error // error object thrown from the check function
   message: string // error.message (for quicker access instead of double deconstruct)
 }
+
+export type ErrorOnOptions = 'error' | 'string' | 'boolean'
 
 /* -------------------------------------------------------------------------- */
 /*                            Eformless context API                           */
