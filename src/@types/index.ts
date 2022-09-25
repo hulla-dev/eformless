@@ -10,9 +10,10 @@ export type HandlerEvents<T> =
 /* -------------------------------------------------------------------------- */
 /*                              1. Field Handling                             */
 /* -------------------------------------------------------------------------- */
+export type FieldValue<T> = T extends unknown ? string : T
 
 export type FieldType<T> = {
-  value: T
+  value?: T
   name: string
   blurred: boolean
   changed: boolean
@@ -25,10 +26,14 @@ export type FieldType<T> = {
 
 export type FieldInitialization<T> = {
   name: string,
-  value: T,
+  value?: T extends undefined ? string : T,
   errorOn?: ErrorOnOptions | ErrorOnOptions[],
   checkFunctions?: CheckFunction<T>[],
 }
+
+export type ReadyFieldInitialization<T> = {
+  value: T,
+} & FieldInitialization<T>
 
 export type CheckFunction<T> = (value: T, ...args: unknown[]) => unknown
 

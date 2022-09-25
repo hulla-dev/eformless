@@ -7,37 +7,41 @@ import type {
   ErrorType,
   FieldHandlerFunction,
   FieldInitialization,
-  FieldType
+  FieldType,
+  FieldValue,
 } from './@types'
 
 const useField = <T>(
-  dataOrName: FieldInitialization<T> | string,
-  ...checkFunctions: CheckFunction<T>[]
-): FieldType<T> => {
+  dataOrName: FieldInitialization<FieldValue<T>> | string,
+  ...checkFunctions: CheckFunction<FieldValue<T>>[]
+): FieldType<FieldValue<T>> => {
   const data = initializeField(dataOrName)
   const { name, errorOn = 'error' } = data
   const functionsToRun = [...checkFunctions, ...(data.checkFunctions || [])]
-  const [value, setValue] = useState(data.value)
+  const [value, setValue] = useState<FieldValue<T>>(data.value === undefined
+    ? '' as FieldValue<T>
+    : data.value as FieldValue<T>
+  )
   // eslint-disable-next-line max-len
-  const [errors, setErrors] = useState<ErrorType<T>[]>(checkErrors(value, name, functionsToRun, errorOn))
+  const [errors, setErrors] = useState<ErrorType<FieldValue<T>>[]>(checkErrors(value, name, functionsToRun, errorOn))
   const [changed, setChanged] = useState<boolean>(false)
   const [blurred, setBlurred] = useState<boolean>(false)
   /* -------------------- 2. Handler functions definitions -------------------- */
-  const handleChange: FieldHandlerFunction<T> = (event) => {
+  const handleChange: FieldHandlerFunction<FieldValue<T>> = (event) => {
     const newVal = extractValue(event)
     setValue(newVal)
     setErrors(checkErrors(newVal, name, functionsToRun, errorOn))
     setChanged(true)
   }
 
-  const handleBlur: FieldHandlerFunction<T> = (event) => {
+  const handleBlur: FieldHandlerFunction<FieldValue<T>> = (event) => {
     const newVal = extractValue(event)
     setValue(newVal)
     setErrors(checkErrors(newVal, name, functionsToRun, errorOn))
     setBlurred(true)
   }
 
-  const field: FieldType<T> = {
+  const field: FieldType<FieldValue<T>> = {
     value,
     name,
     error: !!errors.length,

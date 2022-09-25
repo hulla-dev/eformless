@@ -12,12 +12,12 @@ type Props<T> = Pick<FieldType<T>, 'name' | 'value'> &
 
 // the constraint is required in .tsx file, otherwise <T> causes parsing error
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-constraint
-const Input = <T extends unknown>({
+const Input = ({
   name,
   value,
   cfs,
   ...inputProps
-}: Props<T>) => {
+}: Props<typeof value>) => {
     const field = useField({ name, value }, ...(cfs || []))
     return (
       <fieldset>

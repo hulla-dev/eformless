@@ -1,6 +1,6 @@
 import type { ChangeEvent } from "react"
 import type { NativeSyntheticEvent, TextInputChangeEventData } from "react-native"
-import { FieldInitialization } from "src/@types"
+import { FieldInitialization, ReadyFieldInitialization } from "src/@types"
 
 export const undefinedOnEmpty = <T>(arr: T[]): T[] | undefined => (arr.length > 0 ? arr : undefined)
 
@@ -9,6 +9,8 @@ export const notUndefined = <T>(x: T | undefined): x is T => x !== undefined
 export const notNull = <T>(x: T | null): x is T => x !== null
 
 export const notString = <T>(x: T | string): x is T => typeof x !== 'string'
+export const isValidInitialization = <T>(x: T | unknown): x is ReadyFieldInitialization<T> =>
+  notString(x) && (x as FieldInitialization<T>).value !== undefined
 
 type NativeWebEvent = ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>
 
@@ -34,10 +36,9 @@ export const isNativeEvent = <T>(event: NativeEvent | T): event is NativeEvent =
 
 export const initializeField = <T>(
   data: FieldInitialization<T> | string
-): FieldInitialization<T> => notString(data)
+): ReadyFieldInitialization<T> => isValidInitialization<T>(data)
   ? data
   : {
-    name: data,
-    // this is not ideal, but we just initialize the value to string arbitrarily if not provided
-    value: '' as unknown as T
-  }
+    name: notString(data) ? data.name : data,
+    value: '',
+  } as ReadyFieldInitialization<T>
