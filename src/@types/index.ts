@@ -14,14 +14,21 @@ export type HandlerEvents<T> =
 export type FieldType<T> = {
   value: T
   name: string
-  changed: boolean
   blurred: boolean
+  changed: boolean
   error: boolean,
   errors?: ErrorType<T>[]
   errorMessage: string,
+  onChange: FieldHandlerFunction<T>,
+  onBlur: FieldHandlerFunction<T>,
 }
 
-export type FieldResultType<T> = FieldType<T>
+export type FieldInitialization<T> = {
+  name: string,
+  value: T,
+  errorOn?: ErrorOnOptions | ErrorOnOptions[],
+  checkFunctions?: CheckFunction<T>[],
+}
 
 export type CheckFunction<T> = (value: T, ...args: unknown[]) => unknown
 

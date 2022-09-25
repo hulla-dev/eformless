@@ -1,29 +1,23 @@
 import { useState } from 'react'
 import { checkErrors } from './helpers/errorChecking'
-import { undefinedOnEmpty } from './helpers/typeguards'
+import { initializeField, undefinedOnEmpty } from './helpers/typeguards'
 import { extractValue } from './helpers/conversion'
 import type {
   CheckFunction,
-  ErrorOnOptions,
   ErrorType,
   FieldHandlerFunction,
-  FieldResultType
+  FieldInitialization,
+  FieldType
 } from './@types'
 
-const useField = <T>({
-  value: passedValue,
-  name,
-  errorOn = 'error',
-  checkFunctions = [] as CheckFunction<T>[],
-}: {
-  value: T
-  name: string,
-  errorOn?: ErrorOnOptions | ErrorOnOptions[],
-  checkFunctions?: CheckFunction<T>[]
-}, ...extraCheckFunctions: CheckFunction<T>[]
-): [FieldResultType<T>, FieldHandlerFunction<T>, FieldHandlerFunction<T>] => {
-  const functionsToRun = [...checkFunctions, ...extraCheckFunctions]
-  const [value, setValue] = useState(passedValue)
+const useField = <T>(
+  dataOrName: FieldInitialization<T> | string,
+  ...checkFunctions: CheckFunction<T>[]
+): FieldType<T> => {
+  const data = initializeField(dataOrName)
+  const { name, errorOn = 'error' } = data
+  const functionsToRun = [...checkFunctions, ...(data.checkFunctions || [])]
+  const [value, setValue] = useState(data.value)
   // eslint-disable-next-line max-len
   const [errors, setErrors] = useState<ErrorType<T>[]>(checkErrors(value, name, functionsToRun, errorOn))
   const [changed, setChanged] = useState<boolean>(false)
@@ -43,7 +37,7 @@ const useField = <T>({
     setBlurred(true)
   }
 
-  const field: FieldResultType<T> = {
+  const field: FieldType<T> = {
     value,
     name,
     error: !!errors.length,
@@ -51,9 +45,11 @@ const useField = <T>({
     errorMessage: (errors[0])?.message || '',
     changed,
     blurred,
+    onChange: handleChange,
+    onBlur: handleBlur,
   }
 
-  return [field, handleChange, handleBlur]
+  return field
 }
 
 export default useField
