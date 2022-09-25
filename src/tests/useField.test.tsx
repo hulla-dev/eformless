@@ -1,5 +1,6 @@
 import React, { DetailedHTMLProps, InputHTMLAttributes } from 'react'
 import { fireEvent, render } from '@testing-library/react'
+import { renderHook } from '@testing-library/react-hooks'
 import '@testing-library/jest-dom'
 import { useField } from '../index'
 import { CheckFunction, FieldType } from '../@types'
@@ -17,14 +18,14 @@ const Input = <T extends unknown>({
   cfs,
   ...inputProps
 }: Props<T>) => {
-    const [field, onChange] = useField({ name, value }, ...(cfs || []))
+    const field = useField({ name, value }, ...(cfs || []))
     return (
       <fieldset>
         <input
           value={field.value}
           name={field.name}
           id={field.name}
-          onChange={onChange}
+          onChange={field.onChange}
           {...inputProps}
         />
         <label data-testid="error" htmlFor={field.name}>{field.errorMessage}</label>
@@ -60,3 +61,18 @@ describe('Main functionality', () => {
     expect(getByLabelText('Must be at least 3 characters long')).toBeVisible()
   })
 })
+
+
+describe('Ways of initialization', () => {
+  test('Standard', () => {
+    const { result } = renderHook(() => useField({ name: 'hello', value: '' }))
+    expect(result.current.value).toBe('')
+    expect(result.current.name).toBe('hello')
+  })
+  test('Shorthand', () => {
+    const { result } = renderHook(() => useField('hello'))
+    expect(result.current.value).toBe('')
+    expect(result.current.name).toBe('hello')
+  })
+})
+
