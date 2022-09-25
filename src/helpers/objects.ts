@@ -36,7 +36,7 @@ export const merge = <T extends Record<string, unknown>, O extends Record<string
  * second argument is the passed object itself
  * @returns Mapped object with udpated values
  */
-export const objectMap = <V, T, K extends keyof T>(
+export const objectMap = <V, T extends Record<string, unknown>, K extends keyof T>(
   object: T,
   mapFunction: (passedValue: T[K], object: T) => V,
 ): { [K in keyof T]: V } => {
