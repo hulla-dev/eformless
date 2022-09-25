@@ -16,13 +16,13 @@ jobs:
         with:
           node-version: 16
       - name: Install package
-        run: npm ci
+        run: npm install
   test:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Check typescript
-        run: npx run lint:ts
+        run: npm run lint:ts
       - name: Check eslint
         run: npm run lint
       - name: Check tests
