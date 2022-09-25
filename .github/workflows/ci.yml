@@ -1,0 +1,27 @@
+# Performs check on each push in the package, to ensure code quality
+
+name: 'Continuous Integration'
+
+on:
+  push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check typescript
+        run: npx run lint:ts
+      - name: Check eslint
+        run: npm run lint
+      - name: Check tests
+        run: npm run tst
