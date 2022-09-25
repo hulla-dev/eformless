@@ -1,2 +1,3 @@
 # ignore test folder out of the package
 tests
+.github
