@@ -13,7 +13,7 @@ export type HandlerEvents<T> =
 export type FieldValue<T> = T extends unknown ? string : T
 
 export type FieldType<T> = {
-  value?: T
+  value: T
   name: string
   blurred: boolean
   changed: boolean
