@@ -40,6 +40,7 @@
     /* Advanced Options */
     "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
   },
+  "types": ["dist/types/index.d.ts"],
   "include": ["src"],
   "exclude": [
     "node_modules",
