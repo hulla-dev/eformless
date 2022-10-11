@@ -1,20 +1,44 @@
-import { FieldType, FormType } from './@types'
+import { useState } from 'react'
+import { FieldType, FormFields, FormType } from './types'
 import { notUndefined } from './helpers/typeguards'
 import { flatten } from './helpers/arrays'
+import { assign, omit, values } from './helpers/objects'
 
-const useForm = (name: string, ...fields: FieldType<unknown>[]): FormType => {
-  const groupedFields = fields.reduce(
-    (fieldsObject, field) => Object.assign(fieldsObject, { [field.name]: { ...field } }),
-    {},
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const useForm = <T extends FieldType<any>[]>(...addedFields: T): FormType<T> => {
+  const groupedFields = addedFields.reduce(
+    (fieldsObject, field) => ({
+      ...fieldsObject,
+      [field.name]: field,
+    }),
+    {} as FormFields<T>,
   )
+  const [fields, setFields] = useState<FormFields<T>>(groupedFields as FormFields<T>)
   return {
-    name,
-    fields: groupedFields,
-    changed: fields.some(({ changed }) => changed),
-    blurred: fields.some(({ blurred }) => blurred),
-    allChanged: fields.every(({ changed }) => changed),
-    allBlurred: fields.every(({ blurred }) => blurred),
-    errors: flatten(fields.map(({ errors }) => errors).filter(notUndefined)),
+    fields,
+    add: <V>(field: FieldType<V>) => setFields((prev) => assign(prev, { [field.name]: field })),
+    remove: (fieldName: keyof typeof fields) =>
+      setFields((prev) => omit(fieldName, prev) as FormFields<T>),
+    changed: values(fields).some((field) => (field as FieldType<unknown>).changed),
+    blurred: values(fields).some(
+      (field) => (field as FieldType<FormFields<T>[keyof FormFields<T>]>).blurred,
+    ),
+    allChanged: values(fields).every(
+      (field) => (field as FieldType<FormFields<T>[keyof FormFields<T>]>).changed,
+    ),
+    allBlurred: values(fields).every(
+      (field) => (field as FieldType<FormFields<T>[keyof FormFields<T>]>).blurred,
+    ),
+    error: flatten(
+      values(fields).map(
+        (field) => (field as FieldType<FormFields<T>[keyof FormFields<T>]>).errors || [],
+      ),
+    ).some(notUndefined),
+    errors: flatten(
+      values(fields)
+        .map((field) => (field as FieldType<FormFields<T>[keyof FormFields<T>]>).errors)
+        .filter(notUndefined),
+    ),
   }
 }
 
