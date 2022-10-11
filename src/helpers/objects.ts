@@ -46,3 +46,13 @@ export const objectMap = <V, T extends Record<string, unknown>, K extends keyof 
     {} as { [K in keyof T]: V },
   )
 }
+
+/**
+ * An Object.values implementation that actually maintains types
+ * @param object Object to map values from
+ * @returns Array of values
+ */
+export const values = <T>(object: T): T[keyof T][] =>
+  Object.values(object as { [K in keyof T]: T[K] }) as Array<T[keyof T]>
+
+export const assign = <T, S>(target: T, source: S) => ({ ...target, ...source })
