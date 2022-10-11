@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react'
-import type { HandlerEvents } from '../@types'
+import type { HandlerEvents } from '../types'
 import { isNativeEvent, isNativeWebEvent } from './typeguards'
 
 /**
@@ -46,9 +46,7 @@ export const convertBackToType = (value: string, checked: boolean, type: string)
   }
 }
 
-export const extractValue = <T>(
-  event: HandlerEvents<T>,
-): T => {
+export const extractValue = <T>(event: HandlerEvents<T>): T => {
   if (isNativeWebEvent(event)) {
     // Here we don't mind falsely converting HTMLTextAreaElement to InputElement.
     // They share for us relevant properties and the fact checked does not exist

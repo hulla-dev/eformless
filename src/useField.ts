@@ -9,32 +9,32 @@ import type {
   FieldInitialization,
   FieldType,
   FieldValue,
-} from './@types'
+} from './types'
 
 const useField = <T>(
-  dataOrName: FieldInitialization<FieldValue<T>> | string,
+  data: FieldInitialization<T>,
   ...checkFunctions: CheckFunction<FieldValue<T>>[]
-): FieldType<FieldValue<T>> => {
-  const data = initializeField(dataOrName)
-  const { name, errorOn = 'error' } = data
-  const functionsToRun = [...checkFunctions, ...(data.checkFunctions || [])]
-  const [value, setValue] = useState<FieldValue<T>>(data.value === undefined
-    ? '' as FieldValue<T>
-    : data.value as FieldValue<T>
+) => {
+  const { name, errorOn = ['error'], value: passedValue } = initializeField(data)
+  const functionsToRun: CheckFunction<FieldValue<T>>[] = [
+    ...checkFunctions,
+    ...(data.checkFunctions || []),
+  ]
+  const [value, setValue] = useState(passedValue)
+  const [errors, setErrors] = useState<ErrorType<FieldValue<T>>[]>(
+    checkErrors(value, name, functionsToRun, errorOn),
   )
-  // eslint-disable-next-line max-len
-  const [errors, setErrors] = useState<ErrorType<FieldValue<T>>[]>(checkErrors(value, name, functionsToRun, errorOn))
   const [changed, setChanged] = useState<boolean>(false)
   const [blurred, setBlurred] = useState<boolean>(false)
   /* -------------------- 2. Handler functions definitions -------------------- */
-  const handleChange: FieldHandlerFunction<FieldValue<T>> = (event) => {
+  const onChange: FieldHandlerFunction<FieldValue<T>> = (event) => {
     const newVal = extractValue(event)
     setValue(newVal)
     setErrors(checkErrors(newVal, name, functionsToRun, errorOn))
     setChanged(true)
   }
 
-  const handleBlur: FieldHandlerFunction<FieldValue<T>> = (event) => {
+  const onBlur: FieldHandlerFunction<FieldValue<T>> = (event) => {
     const newVal = extractValue(event)
     setValue(newVal)
     setErrors(checkErrors(newVal, name, functionsToRun, errorOn))
@@ -46,11 +46,11 @@ const useField = <T>(
     name,
     error: !!errors.length,
     errors: undefinedOnEmpty(errors),
-    errorMessage: (errors[0])?.message || '',
+    errorMessage: errors[0]?.message || '',
     changed,
     blurred,
-    onChange: handleChange,
-    onBlur: handleBlur,
+    onChange,
+    onBlur,
   }
 
   return field

@@ -1,4 +1,4 @@
-import type { CheckFunction, ErrorOnOptions, ErrorType } from '../@types'
+import type { CheckFunction, ErrorOnOptions, ErrorType } from '../types'
 import { notNull } from './typeguards'
 import { isOrIncludes } from '../helpers/arrays'
 
@@ -29,7 +29,7 @@ export const invokeCheckFunction = <T>(
       name,
       value,
       function: checkFunction.name,
-      error: (error as typeof Error),
+      error: error as typeof Error,
       message: (error as Error).message,
     }
   }
