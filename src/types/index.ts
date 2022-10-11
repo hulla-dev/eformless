@@ -1,6 +1,8 @@
 import type { ChangeEvent } from 'react'
 import type { NativeSyntheticEvent, TextInputChangeEventData } from 'react-native'
 
+export type ExactOptions = 'exact' | 'shape' | 'normal'
+
 export type HandlerEvents<T> =
   | ChangeEvent<HTMLInputElement>
   | ChangeEvent<HTMLTextAreaElement>
@@ -10,30 +12,31 @@ export type HandlerEvents<T> =
 /* -------------------------------------------------------------------------- */
 /*                              1. Field Handling                             */
 /* -------------------------------------------------------------------------- */
-export type FieldValue<T> = T extends unknown ? string : T
+
+export type FieldValue<T> = T extends undefined ? string : T
 
 export type FieldType<T> = {
   value: T
   name: string
   blurred: boolean
   changed: boolean
-  error: boolean,
+  error: boolean
   errors?: ErrorType<T>[]
-  errorMessage: string,
-  onChange: FieldHandlerFunction<T>,
-  onBlur: FieldHandlerFunction<T>,
+  errorMessage: string
+  onChange: FieldHandlerFunction<T>
+  onBlur: FieldHandlerFunction<T>
 }
 
-export type FieldInitialization<T> = {
-  name: string,
-  value?: T extends undefined ? string : T,
-  errorOn?: ErrorOnOptions | ErrorOnOptions[],
-  checkFunctions?: CheckFunction<T>[],
+export type FieldInitialization<V> = {
+  name: string
+  value?: V
+  errorOn?: ErrorOnOptions | ErrorOnOptions[]
+  checkFunctions?: CheckFunction<FieldValue<V>>[]
 }
 
-export type ReadyFieldInitialization<T> = {
-  value: T,
-} & FieldInitialization<T>
+export type ReadyFieldInitialization<T> = Omit<FieldInitialization<T>, 'value'> & {
+  value: T extends undefined ? string : T
+}
 
 export type CheckFunction<T> = (value: T, ...args: unknown[]) => unknown
 
@@ -43,13 +46,19 @@ export type FieldHandlerFunction<T> = (event: HandlerEvents<T>) => void
 /*                                2. Form Types                               */
 /* -------------------------------------------------------------------------- */
 
-export type FormType = {
-  name: string
-  fields: {
-    [fieldName: string]: FieldType<unknown>
-  }
+export type FormFields<T extends unknown[]> = T extends [infer Field, ...infer Rest]
+  ? Field extends { value: infer V }
+    ? { [key: FieldType<V>['name']]: FieldType<V> } & FormFields<Rest>
+    : never
+  : T
+
+export type FormType<T extends Array<FieldType<unknown>>> = {
+  fields: FormFields<T>
+  add: <T>(field: FieldType<T>) => void
+  remove: (fieldName: keyof FormFields<T>) => void
   changed: boolean
   blurred: boolean
+  error: boolean
   allChanged: boolean
   allBlurred: boolean
   errors?: ErrorType<unknown>[]
@@ -68,19 +77,3 @@ export type ErrorType<T> = {
 }
 
 export type ErrorOnOptions = 'error' | 'string' | 'boolean'
-
-/* -------------------------------------------------------------------------- */
-/*                            Eformless context API                           */
-/* -------------------------------------------------------------------------- */
-export type ListedForms = {
-  [form: string]: FormType
-}
-
-export type ContextType = {
-  forms: ListedForms
-  addForm: (addedForm: FormType) => void
-  removeForm: (removedForm: string) => void
-  addFieldToForm: <T>(field: FieldType<T>, formName: keyof ListedForms) => void
-  removeFieldFromForm: (filedName: string, formName: keyof ListedForms) => void
-  clear: () => void
-}
