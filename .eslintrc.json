@@ -19,6 +19,8 @@
     "prettier"
   ],
   "rules": {
+    // Prettier
+    "prettier/prettier": "error",
     // Global rules
     "max-len": ["error", { "code": 100 }],
     "func-style": ["error", "expression"],
