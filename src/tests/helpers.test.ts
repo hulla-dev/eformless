@@ -2,9 +2,8 @@ import { flatten, isOrIncludes } from '../helpers/arrays'
 import { merge, objectMap, omit } from '../helpers/objects'
 import { convertBackToType, extractValue } from '../helpers/conversion'
 
-
 describe('Helpers test', () => {
-  describe('Arrays' , () => {
+  describe('Arrays', () => {
     const empty = []
     const nested = [['foo'], ['bar']]
     test('[flatten] - Empty array', () => {
@@ -23,7 +22,7 @@ describe('Helpers test', () => {
     })
   })
   describe('Objects', () => {
-    const obj = { foo: 1, bar: 'bar', baz: new Date()}
+    const obj = { foo: 1, bar: 'bar', baz: new Date() }
     test('[omit] - Empty object', () => {
       expect(omit('x', { x: 'a' })).toEqual({})
     })
@@ -79,28 +78,36 @@ describe('Helpers test', () => {
       expect(extractValue(new Date()).constructor.name).toBe('Date')
     })
     test('[extractValue] native - value', () => {
-      expect(extractValue({ nativeEvent: { text: 'a' }})).toEqual('a')
+      expect(extractValue({ nativeEvent: { text: 'a' } })).toEqual('a')
     })
     test('[extractValue] native event fake - return object', () => {
-      expect(extractValue({ nativeEvent: { foo: 'a' }})).toStrictEqual({ nativeEvent: { foo: 'a' }})
+      expect(extractValue({ nativeEvent: { foo: 'a' } })).toStrictEqual({
+        nativeEvent: { foo: 'a' },
+      })
     })
     test('[extractValue] web native event', () => {
-      expect(extractValue({ target: { value: 'hi' }})).toEqual('hi')
+      expect(extractValue({ target: { value: 'hi' } })).toEqual('hi')
     })
     test('[extractValue] web native event - number', () => {
-      expect(extractValue({ target: { value: '1', type: 'number' }})).toEqual(1)
+      expect(extractValue({ target: { value: '1', type: 'number' } })).toEqual(1)
     })
     test('[extractValue] web native event - radio', () => {
-      expect(extractValue({ target: { checked: true, type: 'radio' }})).toEqual(true)
+      expect(extractValue({ target: { checked: true, type: 'radio' } })).toEqual(true)
     })
     test('[extractValue] web native event - radio with fake value', () => {
-      expect(extractValue({ target: { checked: false, value: true, type: 'radio' }})).toEqual(false)
+      expect(extractValue({ target: { checked: false, value: true, type: 'radio' } })).toEqual(
+        false,
+      )
     })
     test('[extractValue] web native event - maintain date type', () => {
-      expect(extractValue({ target: {
-        value: new Date().toISOString(),
-        type: 'datetime-local' }
-      }).constructor.name).toBe('Date')
+      expect(
+        extractValue({
+          target: {
+            value: new Date().toISOString(),
+            type: 'datetime-local',
+          },
+        }).constructor.name,
+      ).toBe('Date')
     })
   })
 })
