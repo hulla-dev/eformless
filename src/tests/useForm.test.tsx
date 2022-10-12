@@ -84,4 +84,12 @@ describe('Interactions', () => {
     expect(result.current.allChanged).toBe(false)
     expect(result.current.allBlurred).toBe(false)
   })
+  test('Activity', () => {
+    const { getByText, getByRole } = render(<Form />)
+    expect(getByText('Changed: false')).toBeVisible()
+    expect(getByText('Blurred: false')).toBeVisible()
+    fireEvent.change(getByRole('textbox'), { target: { value: 'foo' } })
+    expect(getByText('Changed: true')).toBeVisible()
+    expect(getByText('Blurred: false')).toBeVisible()
+  })
 })
