@@ -12,6 +12,14 @@ export const omit = <K extends keyof T, T>(property: K, object: T): Omit<T, K> =
   return result
 }
 
+export const remove = <T, K extends keyof T>(object: T, ...keys: K[]): Omit<T, K> => {
+  const copy = object
+  for (const key of keys) {
+    delete copy[key]
+  }
+  return copy
+}
+
 /**
  * Merges two objects into one
  * @param target - The original object
