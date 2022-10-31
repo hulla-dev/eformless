@@ -28,16 +28,20 @@ const useField = <T>(
   const [blurred, setBlurred] = useState<boolean>(false)
   /* -------------------- 2. Handler functions definitions -------------------- */
   const onChange: FieldHandlerFunction<FieldValue<T>> = (event) => {
-    const newVal = extractValue(event)
-    setValue(newVal)
-    setErrors(checkErrors(newVal, name, functionsToRun, errorOn))
+    const newVal = extractValue(event, value)
+    if (newVal !== value) {
+      setValue(newVal)
+      setErrors(checkErrors(newVal, name, functionsToRun, errorOn))
+    }
     setChanged(true)
   }
 
   const onBlur: FieldHandlerFunction<FieldValue<T>> = (event) => {
-    const newVal = extractValue(event)
-    setValue(newVal)
-    setErrors(checkErrors(newVal, name, functionsToRun, errorOn))
+    const newVal = extractValue(event, value)
+    if (newVal !== value) {
+      setValue(newVal)
+      setErrors(checkErrors(newVal, name, functionsToRun, errorOn))
+    }
     setBlurred(true)
   }
 
