@@ -27,7 +27,7 @@ type NativeEvent = NativeSyntheticEvent<TextInputChangeEventData>
 export const isNativeEvent = <T>(event: NativeEvent | T): event is NativeEvent =>
   !!(
     (event as NativeEvent).nativeEvent &&
-    (event as NativeEvent).nativeEvent.text &&
+    (event as NativeEvent).nativeEvent.text !== undefined &&
     typeof (event as NativeEvent).nativeEvent.text === 'string'
   )
 
