@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, SyntheticEvent } from 'react'
 import type { HandlerEvents } from '../types'
 import { isNativeEvent, isNativeWebEvent } from './typeguards'
 
@@ -46,7 +46,7 @@ export const convertBackToType = (value: string, checked: boolean, type: string)
   }
 }
 
-export const extractValue = <T>(event: HandlerEvents<T>): T => {
+export const extractValue = <T, V extends T>(event: HandlerEvents<T>, prev: V): T => {
   if (isNativeWebEvent(event)) {
     // Here we don't mind falsely converting HTMLTextAreaElement to InputElement.
     // They share for us relevant properties and the fact checked does not exist
@@ -57,6 +57,17 @@ export const extractValue = <T>(event: HandlerEvents<T>): T => {
   if (isNativeEvent(event)) {
     // we can be guaranteed T = string in this case
     return event.nativeEvent.text as unknown as T
+  }
+
+  if (
+    (event as SyntheticEvent).constructor.name === 'SyntheticEvent' &&
+    (event as SyntheticEvent).target === null &&
+    (event as SyntheticEvent).nativeEvent === null
+  ) {
+    // Fallback - if blur happened with no input
+    // we need to prevent passing entire event to the value
+    // and persisting the event creating memory leak
+    return prev
   }
   // otherwise we fall back to whatever value was passed as first argument
   return event
