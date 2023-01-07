@@ -1,5 +1,5 @@
 import type { ChangeEvent, SyntheticEvent } from 'react'
-import type { HandlerEvents } from '../types'
+import type { CoercedValue, Config, HandlerEvents } from '../types'
 import { isNativeEvent, isNativeWebEvent } from './typeguards'
 
 /**
@@ -46,13 +46,25 @@ export const convertBackToType = (value: string, checked: boolean, type: string)
   }
 }
 
-export const extractValue = <T, V extends T>(event: HandlerEvents<T>, prev: V): T => {
+export const extractValue = <T, V extends T, X extends Config>(
+  event: HandlerEvents<T>,
+  prev: V,
+  config: X,
+) => {
   if (isNativeWebEvent(event)) {
     // Here we don't mind falsely converting HTMLTextAreaElement to InputElement.
     // They share for us relevant properties and the fact checked does not exist
     // on text area element does not matter to us
     const { value, checked, type } = (event as ChangeEvent<HTMLInputElement>).target
-    return convertBackToType(value, checked, type) as T
+    if (config.coerceBack) {
+      return convertBackToType(value, checked, type) as T
+    }
+    // Hackish auto-coercion of values back to their original type
+    return type == 'checkbox'
+      ? (checked as CoercedValue<T, X, 'checkbox'>)
+      : type === 'radio'
+      ? (checked as CoercedValue<T, X, 'radio'>)
+      : (value as CoercedValue<T, X, 'any-other-text-input'>)
   }
   if (isNativeEvent(event)) {
     // we can be guaranteed T = string in this case

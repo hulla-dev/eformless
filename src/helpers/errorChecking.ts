@@ -1,46 +1,78 @@
-import type { CheckFunction, ErrorOnOptions, ErrorType } from '../types'
-import { notNull } from './typeguards'
-import { isOrIncludes } from '../helpers/arrays'
+import type { CheckFunction, Config, FieldError } from '../types'
 
-export const invokeCheckFunction = <T>(
+type ErrorWithInternal<T, E = Error> = {
+  INTENRAL_IS_ERROR: true
+} & FieldError<T, E>
+
+export const invokeCheckFunction = <T, C extends CheckFunction<T>, E = Error>(
   value: T,
   name: string,
-  checkFunction: CheckFunction<T>,
-  errorOn: ErrorOnOptions | ErrorOnOptions[],
-): ErrorType<T> | null => {
+  checkFunction: C,
+  config: Config,
+) => {
+  let result: ReturnType<C>
   try {
-    // we attempt invoking check function, if it passes (is OK), returns null
-    // ideally checkFunction should throw a customized error
-    const check = checkFunction(value)
-    // If the user specifies, we can pass a special condition for checking
-    if (isOrIncludes('boolean', errorOn)) {
-      if (!check) {
-        throw Error(`${checkFunction.name} check failed with value: ${check}`)
+    result = checkFunction(value)
+    // If errorOn has enabled different types of errors, we throw them
+    if (config.errorOn.includes('string') && typeof result === 'string') {
+      if (result) {
+        throw new Error(result)
       }
     }
-    if (isOrIncludes('string', errorOn)) {
-      if (check) {
-        throw Error(check as string)
+    if (config.errorOn.includes('boolean') && typeof result === 'boolean') {
+      if (!result) {
+        throw new Error(`${name} is invalid with value: ${value}`)
       }
     }
-    return null
+    // We provide a warning for type mismatch based on config error on values
+    if (
+      (typeof result !== 'string' && config.errorOn.includes('string')) ||
+      (typeof result !== 'boolean' && config.errorOn.includes('boolean'))
+    ) {
+      console.warn(
+        // eslint-disable-next-line max-len
+        `[eformless]: The check function for ${name} returned a value of type ${typeof result} instead of ${
+          config.errorOn
+        }. Please check your check function. (at ${checkFunction.name})`,
+      )
+    }
   } catch (error) {
-    return {
+    const fieldError: ErrorWithInternal<T, E> = {
+      ...(error as E),
       name,
       value,
-      function: checkFunction.name,
-      error: error as typeof Error,
-      message: (error as Error).message,
+      INTENRAL_IS_ERROR: true,
     }
+    return fieldError
   }
+  return result
 }
 
-export const checkErrors = <T>(
+const isError = <T, C extends CheckFunction<T>, E = Error>(
+  error: ErrorWithInternal<T, E> | ReturnType<C>,
+): error is ErrorWithInternal<T, E> => !!(error as ErrorWithInternal<T, E>)?.INTENRAL_IS_ERROR
+
+const isPassed = <T, C extends CheckFunction<T>, E = Error>(
+  error: ErrorWithInternal<T, E> | ReturnType<C>,
+): error is ReturnType<C> => !isError(error)
+
+export const checkErrors = <T, C extends CheckFunction<T>, E = Error>(
   value: T,
   name: string,
-  checkFunctions: CheckFunction<T>[],
-  errorOn: ErrorOnOptions | ErrorOnOptions[],
-): ErrorType<T>[] => {
-  const errors = checkFunctions.map((checkfn) => invokeCheckFunction(value, name, checkfn, errorOn))
-  return errors.filter(notNull)
+  checkFunctions: C[],
+  config: Config,
+): [FieldError<T, E>[], ReturnType<C>[]] => {
+  const results = checkFunctions.map((checkfn) =>
+    invokeCheckFunction<T, C, E>(value, name, checkfn, config),
+  )
+
+  const internalErrors: ErrorWithInternal<T, E>[] = results.filter((e) => isError(e))
+  const passed = results.filter((e) => isPassed(e)) as ReturnType<C>[]
+  const errors: FieldError<T, E>[] = internalErrors.map((e) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { INTENRAL_IS_ERROR, ...rest } = e
+    return rest as FieldError<T, E>
+  })
+
+  return [errors, passed]
 }
