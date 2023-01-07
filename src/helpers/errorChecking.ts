@@ -12,7 +12,12 @@ export const invokeCheckFunction = <T, C extends CheckFunction<T>, E = Error>(
 ) => {
   let result: ReturnType<C> | ErrorWithInternal<T, E>
   try {
-    result = checkFunction(value)
+    // If provided a checkAdapter in the config, we apply it to all check functions
+    if (config.checkAdapter !== undefined) {
+      result = checkFunction(config.checkAdapter(value))
+    } else {
+      result = checkFunction(value)
+    }
     // If errorOn has enabled different types of errors, we throw them
     if (config.errorOn.includes('string') && typeof result === 'string') {
       if (result) {
