@@ -18,10 +18,13 @@ const comparator = <T>(a: T, b: T) => {
 
 export let config: Config = {
   errorOn: ['error'],
-  inferKeyboard: true,
   coerceBack: true,
   comparator,
   checkAdapter: null,
+  inferAutoCapitalize: false,
+  inferKeyboard: true,
+  valueKey: 'value',
+  platform: 'web',
   warnOnTypeMismatch: true,
 }
 
