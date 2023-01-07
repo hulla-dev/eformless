@@ -56,7 +56,7 @@ const isError = <T, C extends CheckFunction<T>, E = Error>(
 const removeInternalFlag = <T, C extends CheckFunction<T>, E = Error>(
   checkResults: ErrorWithInternal<T, E> | ReturnType<C>,
 ): FieldError<T, E> | ReturnType<C> => {
-  const { INTENRAL_IS_ERROR, ...rest } = checkResults as ErrorWithInternal<T, E>
+  const { INTENRAL_IS_ERROR, ...rest } = (checkResults ?? {}) as ErrorWithInternal<T, E>
   if (INTENRAL_IS_ERROR) {
     return rest as FieldError<T, E>
   }
