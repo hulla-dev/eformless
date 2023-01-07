@@ -75,6 +75,5 @@ export const checkErrors = <T, C extends CheckFunction<T>, E = Error>(
     return rest as FieldError<T, E>
   })
 
-  console.log('wtf => ', errors, passed)
   return [errors, passed]
 }

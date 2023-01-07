@@ -22,6 +22,7 @@ export const useField = <T, E = Error, C extends CheckFunction<T> = CheckFunctio
       ? [configOrCheckFunction, ...checkFunctions]
       : checkFunctions
   const [value, setValue] = useState<T>(initialValue)
+  // Note: not a useState, not to get confused due to similar syntax
   const [initialErrors, initialCheckResults] = checkErrors<T, C, E>(value, name, checks, config)
   const [errors, setErrors] = useState<FieldError<T, E>[]>(initialErrors)
   const [checkResults, setCheckResults] = useState(initialCheckResults)
@@ -34,27 +35,22 @@ export const useField = <T, E = Error, C extends CheckFunction<T> = CheckFunctio
     (event) => {
       const newVal = extractValue(event, value, config)
 
-      // Check for web elements that mutate the input value
-      if (config.warnOnTypeMismatch) {
-        if (typeof newVal !== typeof value) {
-          console.warn(
-            // eslint-disable-next-line max-len
-            `[eformless]: Value of field "${name}" was changed from ${typeof value} to ${typeof newVal}. This likely happens because you have disabled "coerceBack" parameter in your config for web elements or you are using a custom input component that mimics the HTMLInputElement structure, but that does not pass the value prop to the underlying input element. If you wish to disable this warning, set "warnOnTypeMismatch" to false in your config.`,
-          )
+      if (!config.comparator(newVal, value)) {
+        // Check for web elements that mutate the input value
+        if (config.warnOnTypeMismatch) {
+          if (typeof newVal !== typeof value) {
+            console.warn(
+              // eslint-disable-next-line max-len
+              `[eformless]: Value of field "${name}" was changed from ${typeof value} to ${typeof newVal}. This likely happens because you have disabled "coerceBack" parameter in your config for web elements or you are using a custom input component that mimics the HTMLInputElement structure, but that does not pass the value prop to the underlying input element. If you wish to disable this warning, set "warnOnTypeMismatch" to false in your config.`,
+            )
+          }
         }
+        // Update value and check for errors
+        const [newErrors, newChecked] = checkErrors<T, C, E>(newVal as T, name, checks, config)
+        setValue(newVal as T)
+        setErrors(newErrors)
+        setCheckResults(newChecked)
       }
-      // Update value and check for errors
-      setValue(newVal as T)
-      const [newErrors, newChecked] = checkErrors<T, C, E>(
-        newVal as T,
-        name,
-        checkFunctions,
-        config,
-      )
-      console.log('bullshit', newErrors)
-      console.log('why is it empty', newChecked)
-      setErrors(newErrors)
-      setCheckResults(newChecked)
 
       // Log the change / blur event
       if (type === 'change') {

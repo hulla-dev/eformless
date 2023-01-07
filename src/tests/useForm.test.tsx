@@ -9,7 +9,8 @@ const Form = () => {
   const age = useField('age', 12, { errorOn: ['string'] }, (val) =>
     val < 18 ? 'Must be 18 or older' : '',
   )
-  const form = useForm({ name, age })
+  const test = useField('test', 'test')
+  const form = useForm({ name, age, test })
   return (
     <div>
       {Object.keys(form.fields).map((key) => (
@@ -57,7 +58,7 @@ describe('Main functionality', () => {
     const {
       result: { current: name },
     } = renderHook(() =>
-      useField('name', '', { errorOn: 'string' }, (val) => (!val ? 'Must not be empty' : '')),
+      useField('name', '', { errorOn: ['string'] }, (val) => (!val ? 'Must not be empty' : '')),
     )
     const { result } = renderHook(() => useForm({ name }))
     expect(result.current.isError).toBe(true)

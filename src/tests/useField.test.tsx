@@ -206,7 +206,7 @@ describe('Type-check - checkFunction', () => {
     act(() => {
       result.current.onChange('')
     })
-    expect(result.current.error?.message).toBe(' check failed with value: false')
+    expect(result.current.error?.message).toBe('x is invalid with value: ')
   })
   test('Multiple matches', () => {
     const { result } = renderHook(() =>
@@ -224,7 +224,7 @@ describe('Type-check - checkFunction', () => {
     act(() => {
       result.current.onChange(0)
     })
-    expect(result.current.error?.message).toBe('')
+    expect(result.current.error?.message).toBe(undefined)
   })
 })
 
