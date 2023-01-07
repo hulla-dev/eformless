@@ -1,6 +1,6 @@
 {
   "name": "eformless",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Write your react forms effortlessly",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
