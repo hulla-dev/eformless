@@ -17,10 +17,11 @@ const comparator = <T>(a: T, b: T) => {
 }
 
 export let config: Config = {
+  allow: undefined,
   errorOn: ['error'],
   coerceBack: true,
   comparator,
-  checkAdapter: null,
+  checkAdapter: undefined,
   inferAutoCapitalize: false,
   inferKeyboard: true,
   valueKey: 'value',

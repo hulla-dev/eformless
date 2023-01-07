@@ -77,8 +77,9 @@ export type ErrorOn = 'error' | 'string' | 'boolean'
 export type Platform = 'web' | 'native'
 
 export type Config = {
+  allow: undefined | ((value: any) => boolean)
   errorOn: ErrorOn[]
-  checkAdapter: ((value: any) => any) | null
+  checkAdapter: ((value: any) => any) | undefined
   comparator: <T>(a: T, b: T) => boolean
   coerceBack: boolean
   inferKeyboard: boolean
