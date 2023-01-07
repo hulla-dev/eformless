@@ -10,18 +10,18 @@ export const invokeCheckFunction = <T, C extends CheckFunction<T>, E = Error>(
   checkFunction: C,
   config: Config,
 ) => {
-  let result: ReturnType<C>
+  let result: ReturnType<C> | ErrorWithInternal<T, E>
   try {
     result = checkFunction(value)
     // If errorOn has enabled different types of errors, we throw them
     if (config.errorOn.includes('string') && typeof result === 'string') {
       if (result) {
-        throw new Error(result)
+        throw Error(result)
       }
     }
     if (config.errorOn.includes('boolean') && typeof result === 'boolean') {
       if (!result) {
-        throw new Error(`${name} is invalid with value: ${value}`)
+        throw Error(`${name} is invalid with value: ${value}`)
       }
     }
     // We provide a warning for type mismatch based on config error on values
@@ -38,12 +38,13 @@ export const invokeCheckFunction = <T, C extends CheckFunction<T>, E = Error>(
     }
   } catch (error) {
     const fieldError: ErrorWithInternal<T, E> = {
-      ...(error as E),
+      error: error as E,
+      message: (error as Error)?.message,
       name,
       value,
       INTENRAL_IS_ERROR: true,
     }
-    return fieldError
+    result = fieldError
   }
   return result
 }
@@ -74,5 +75,6 @@ export const checkErrors = <T, C extends CheckFunction<T>, E = Error>(
     return rest as FieldError<T, E>
   })
 
+  console.log('wtf => ', errors, passed)
   return [errors, passed]
 }

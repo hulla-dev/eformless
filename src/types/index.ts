@@ -14,14 +14,16 @@ export type HandlerEvents<T> =
 export type FieldError<T, E = Error> = {
   name: string
   value: T
-} & E
+  message: string
+  error: E
+}
 
 export type EventHandler<T> = (event: HandlerEvents<T>) => void
 
 export type CheckFunction<T> = (value: T) => any
 
 export type Field<T, E = Error, C extends CheckFunction<T> = CheckFunction<T>> = {
-  value: Value<T, C>
+  value: T
   name: string
   checkResults: ReturnType<C>[]
   error?: FieldError<T, E>
@@ -31,13 +33,13 @@ export type Field<T, E = Error, C extends CheckFunction<T> = CheckFunction<T>> =
   isBlurred: boolean
   onChange: EventHandler<T>
   onBlur: EventHandler<T>
+  props: {
+    name: string
+    value: T
+    onChange: EventHandler<T>
+    onBlur: EventHandler<T>
+  }
 }
-
-export type Value<T, C extends CheckFunction<T>> = T extends undefined
-  ? C extends undefined
-    ? unknown
-    : Parameters<C>[0]
-  : T
 
 export type ErrorOn = 'error' | 'string' | 'boolean'
 
