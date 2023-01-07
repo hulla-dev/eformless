@@ -1,22 +1,15 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useField, useForm } from '../index'
 import '@testing-library/jest-dom'
 import { renderHook } from '@testing-library/react-hooks'
 import { fireEvent, render } from '@testing-library/react'
 
 const Form = () => {
-  const name = useField({ name: 'name', value: '', errorOn: 'string' }, (val) =>
-    !val ? 'Required' : '',
-  )
-  const age = useField({ name: 'age', value: 12, errorOn: 'string' }, (val) =>
+  const name = useField('name', '', { errorOn: ['string'] }, (val) => (!val ? 'Required' : ''))
+  const age = useField('age', 12, { errorOn: ['string'] }, (val) =>
     val < 18 ? 'Must be 18 or older' : '',
   )
-  const form = useForm(name, age)
-  const field = useField({ name: 'test', value: 'test' })
-  useEffect(() => {
-    form.add(field)
-  }, [])
-
+  const form = useForm({ name, age })
   return (
     <div>
       {Object.keys(form.fields).map((key) => (
@@ -32,9 +25,9 @@ const Form = () => {
         onBlur={name.onBlur}
         value={name.value}
       />
-      <p>Field-changed: {String(name.changed)}</p>
-      <p>Changed: {String(form.changed)}</p>
-      <p>Blurred: {String(form.blurred)}</p>
+      <p>Field-changed: {String(name.isChanged)}</p>
+      <p>Changed: {String(form.isChanged)}</p>
+      <p>Blurred: {String(form.isBlurred)}</p>
     </div>
   )
 }
@@ -43,13 +36,13 @@ describe('Main functionality', () => {
   test('Initial form setup', () => {
     const {
       result: { current: age },
-    } = renderHook(() => useField({ name: 'age', value: 12 }))
+    } = renderHook(() => useField('age', 12))
     const {
       result: { current: name },
-    } = renderHook(() => useField({ name: 'name', value: 'foo' }))
+    } = renderHook(() => useField('name', 'foo'))
     const {
       result: { current: form },
-    } = renderHook(() => useForm(age, name))
+    } = renderHook(() => useForm({ age, name }))
     expect(Object.values(form.fields).map((f) => f.value)).toEqual([12, 'foo'])
   })
   test('Add field', () => {
@@ -64,12 +57,10 @@ describe('Main functionality', () => {
     const {
       result: { current: name },
     } = renderHook(() =>
-      useField({ name: 'name', value: '', errorOn: 'string' }, (val) =>
-        !val ? 'Must not be empty' : '',
-      ),
+      useField('name', '', { errorOn: 'string' }, (val) => (!val ? 'Must not be empty' : '')),
     )
-    const { result } = renderHook(() => useForm(name))
-    expect(result.current.error).toBe(true)
+    const { result } = renderHook(() => useForm({ name }))
+    expect(result.current.isError).toBe(true)
   })
 })
 
@@ -77,12 +68,12 @@ describe('Interactions', () => {
   test('No activity', () => {
     const {
       result: { current: name },
-    } = renderHook(() => useField({ name: 'name', value: '' }))
-    const { result } = renderHook(() => useForm(name))
-    expect(result.current.changed).toBe(false)
-    expect(result.current.blurred).toBe(false)
-    expect(result.current.allChanged).toBe(false)
-    expect(result.current.allBlurred).toBe(false)
+    } = renderHook(() => useField('name', ''))
+    const { result } = renderHook(() => useForm({ name }))
+    expect(result.current.isChanged).toBe(false)
+    expect(result.current.isBlurred).toBe(false)
+    expect(result.current.isAllChanged).toBe(false)
+    expect(result.current.isAllBlurred).toBe(false)
   })
   test('Activity', () => {
     const { getByText, getByRole } = render(<Form />)

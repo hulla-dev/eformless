@@ -1,4 +1,5 @@
-import { flatten, isOrIncludes } from '../helpers/arrays'
+import { config } from '../config'
+import { flatten } from '../helpers/arrays'
 import { merge, objectMap, omit } from '../helpers/objects'
 import { convertBackToType, extractValue } from '../helpers/conversion'
 
@@ -11,14 +12,6 @@ describe('Helpers test', () => {
     })
     test('[flatten] - Nested array', () => {
       expect(flatten(nested)).toStrictEqual(['foo', 'bar'])
-    })
-    test('[isOrIncludes] - Base comparison', () => {
-      expect(isOrIncludes('a', 'b')).toBeFalsy()
-      expect(isOrIncludes('a', 'a')).toBeTruthy()
-    })
-    test('[isOrIncludes] - Arrays', () => {
-      expect(isOrIncludes('a', ['a', 'b'])).toBeTruthy()
-      expect(isOrIncludes('a', ['b', 'c'])).toBeFalsy()
     })
   })
   describe('Objects', () => {
@@ -69,44 +62,70 @@ describe('Helpers test', () => {
       }
     })
     test('[extractValue] value - base value', () => {
-      expect(extractValue('hello')).toBe('hello')
+      expect(extractValue('hello', 'hello', config)).toBe('hello')
     })
     test('[extractValue] value - base value type', () => {
-      expect(typeof extractValue('hello')).toEqual('string')
+      expect(typeof extractValue('hello', 'hello', config)).toEqual('string')
     })
     test('[extractValue] value - date type', () => {
-      expect(extractValue(new Date()).constructor.name).toBe('Date')
+      expect(extractValue(new Date(), new Date(), config).constructor.name).toBe('Date')
     })
     test('[extractValue] native - value', () => {
-      expect(extractValue({ nativeEvent: { text: 'a' } })).toEqual('a')
+      expect(
+        extractValue({ nativeEvent: { text: 'a' } }, { nativeEvent: { text: 'b' } }, config),
+      ).toEqual('a')
     })
     test('[extractValue] native event fake - return object', () => {
-      expect(extractValue({ nativeEvent: { foo: 'a' } })).toStrictEqual({
+      expect(
+        extractValue({ nativeEvent: { foo: 'a' } }, { nativeEvent: { foo: 'c' } }, config),
+      ).toStrictEqual({
         nativeEvent: { foo: 'a' },
       })
     })
     test('[extractValue] web native event', () => {
-      expect(extractValue({ target: { value: 'hi' } })).toEqual('hi')
+      expect(
+        extractValue({ target: { value: 'hi' } }, { target: { value: 'hello' } }, config),
+      ).toEqual('hi')
     })
     test('[extractValue] web native event - number', () => {
-      expect(extractValue({ target: { value: '1', type: 'number' } })).toEqual(1)
+      expect(
+        extractValue(
+          { target: { value: '1', type: 'number' } },
+          { target: { value: '1', type: 'number' } },
+          config,
+        ),
+      ).toEqual(1)
     })
     test('[extractValue] web native event - radio', () => {
-      expect(extractValue({ target: { checked: true, type: 'radio' } })).toEqual(true)
+      expect(
+        extractValue(
+          { target: { checked: true, type: 'radio' } },
+          { target: { checked: true, type: 'radio' } },
+          config,
+        ),
+      ).toEqual(true)
     })
     test('[extractValue] web native event - radio with fake value', () => {
-      expect(extractValue({ target: { checked: false, value: true, type: 'radio' } })).toEqual(
-        false,
-      )
+      expect(
+        extractValue(
+          { target: { checked: false, value: true, type: 'radio' } },
+          { target: { checked: false, value: true, type: 'radio' } },
+          config,
+        ),
+      ).toEqual(false)
     })
     test('[extractValue] web native event - maintain date type', () => {
       expect(
-        extractValue({
-          target: {
-            value: new Date().toISOString(),
-            type: 'datetime-local',
+        extractValue(
+          {
+            target: {
+              value: new Date().toISOString(),
+              type: 'datetime-local',
+            },
           },
-        }).constructor.name,
+          { target: { value: new Date().toISOString(), type: 'datetime-local' } },
+          config,
+        ).constructor.name,
       ).toBe('Date')
     })
   })
