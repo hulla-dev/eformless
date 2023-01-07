@@ -1,14 +1,21 @@
 import { useState } from 'react'
 import { checkErrors } from './helpers/errorChecking'
-// import { undefinedOnEmpty } from './helpers/typeguards'
+import { undefinedOnEmpty } from './helpers/typeguards'
 import { extractValue } from './helpers/conversion'
-import type { CheckFunction, Config, EventHandler, Field, FieldError } from './types'
+import type { CheckFunction, Config, EventHandler, Field, FieldError, Props } from './types'
 import { getConfig } from './config'
+import { merge } from './helpers/objects'
+import { guessedProps } from './helpers/guessProps'
 
-export const useField = <T, E = Error, C extends CheckFunction<T> = CheckFunction<T>>(
+export const useField = <
+  T,
+  E = Error,
+  C extends CheckFunction<T> = CheckFunction<T>,
+  X extends Partial<Config> = Partial<Config>,
+>(
   name: string,
   initialValue: T,
-  configOrCheckFunction?: C | Partial<Config>,
+  configOrCheckFunction?: C | X,
   ...checkFunctions: C[]
 ) => {
   /* --------------------- 1. State and config definitions -------------------- */
@@ -63,24 +70,24 @@ export const useField = <T, E = Error, C extends CheckFunction<T> = CheckFunctio
   const onChange = handle('change')
   const onBlur = handle('blur')
 
+  const props = merge(
+    { name, onChange, onBlur },
+    guessedProps(name, value, config),
+  ) as unknown as Props<T, E, C, X>
+
   /* -------------------------------- 3. Result ------------------------------- */
-  const field: Field<T, E, C> = {
+  const field: Field<T, E, C, X> = {
     value,
     name,
     checkResults: checkResults,
-    errors: errors, // undefinedOnEmpty(errors),
-    error: errors[0], // undefinedOnEmpty([errors[0]]) === undefined ? undefined : errors[0],
+    errors: undefinedOnEmpty(errors),
+    error: errors[0],
     isError: errors.length > 0,
     isChanged,
     isBlurred,
     onChange,
     onBlur,
-    props: {
-      value,
-      name,
-      onChange,
-      onBlur,
-    },
+    props,
   }
 
   return field
