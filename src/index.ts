@@ -1,2 +1,3 @@
-export { default as useField } from './useField'
-export { default as useForm } from './useForm'
+export { useField } from './useField'
+export { useForm } from './useForm'
+export { getConfig, setConfig } from './config'
