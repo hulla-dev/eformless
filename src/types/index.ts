@@ -1,8 +1,6 @@
 import type { ChangeEvent } from 'react'
 import type { NativeSyntheticEvent, TextInputChangeEventData } from 'react-native'
 
-export type ExactOptions = 'exact' | 'shape' | 'normal'
-
 export type HandlerEvents<T> =
   | ChangeEvent<HTMLInputElement>
   | ChangeEvent<HTMLTextAreaElement>
@@ -13,67 +11,73 @@ export type HandlerEvents<T> =
 /*                              1. Field Handling                             */
 /* -------------------------------------------------------------------------- */
 
-export type FieldValue<T> = T extends undefined ? string : T
-
-export type FieldType<T> = {
+export type FieldError<T, E = Error> = {
+  name: string
   value: T
+} & E
+
+export type EventHandler<T> = (event: HandlerEvents<T>) => void
+
+export type CheckFunction<T> = (value: T) => any
+
+export type Field<T, E = Error, C extends CheckFunction<T> = CheckFunction<T>> = {
+  value: Value<T, C>
   name: string
-  blurred: boolean
-  changed: boolean
-  error: boolean
-  errors?: ErrorType<T>[]
-  errorMessage: string
-  onChange: FieldHandlerFunction<T>
-  onBlur: FieldHandlerFunction<T>
+  checkResults: ReturnType<C>[]
+  error?: FieldError<T, E>
+  errors?: FieldError<T, E>[]
+  isError: boolean
+  isChanged: boolean
+  isBlurred: boolean
+  onChange: EventHandler<T>
+  onBlur: EventHandler<T>
 }
 
-export type FieldInitialization<V> = {
-  name: string
-  value?: V
-  errorOn?: ErrorOnOptions | ErrorOnOptions[]
-  checkFunctions?: CheckFunction<FieldValue<V>>[]
-}
-
-export type ReadyFieldInitialization<T> = Omit<FieldInitialization<T>, 'value'> & {
-  value: T extends undefined ? string : T
-}
-
-export type CheckFunction<T> = (value: T, ...args: unknown[]) => unknown
-
-export type FieldHandlerFunction<T> = (event: HandlerEvents<T>) => void
-
-/* -------------------------------------------------------------------------- */
-/*                                2. Form Types                               */
-/* -------------------------------------------------------------------------- */
-
-export type FormFields<T extends unknown[]> = T extends [infer Field, ...infer Rest]
-  ? Field extends { value: infer V }
-    ? { [key: FieldType<V>['name']]: FieldType<V> } & FormFields<Rest>
-    : never
+export type Value<T, C extends CheckFunction<T>> = T extends undefined
+  ? C extends undefined
+    ? unknown
+    : Parameters<C>[0]
   : T
 
-export type FormType<T extends Array<FieldType<unknown>>> = {
-  fields: FormFields<T>
-  add: <T>(field: FieldType<T>) => void
-  remove: (fieldName: keyof FormFields<T>) => void
-  changed: boolean
-  blurred: boolean
-  error: boolean
-  allChanged: boolean
-  allBlurred: boolean
-  errors?: ErrorType<unknown>[]
+export type ErrorOn = 'error' | 'string' | 'boolean'
+
+export type Config = {
+  errorOn: ErrorOn[]
+  checkAdapter: ((value: any) => any) | null
+  comparator: <T>(a: T, b: T) => boolean
+  inferKeyboard: boolean
+  coerceBack: boolean
+  warnOnTypeMismatch: boolean
 }
 
-/* -------------------------------------------------------------------------- */
-/*                              3. Error Handling                             */
-/* -------------------------------------------------------------------------- */
+export type CoercedValue<
+  T,
+  X extends Config,
+  Y extends 'radio' | 'checkbox' | string,
+> = X['coerceBack'] extends true ? T : Y extends 'radio' | 'checkbox' ? boolean : string
 
-export type ErrorType<T> = {
-  name: string // name of the input (from event)
-  value: T // value of the input (from event)
-  function: string // name of the check function which resulted in error
-  error: typeof Error // error object thrown from the check function
-  message: string // error.message (for quicker access instead of double deconstruct)
+export type FieldMap<M extends Record<string, unknown>> = M extends {
+  [K in keyof M]: M[K] extends Field<infer T, infer E, infer C> ? Field<T, E, C> : never
 }
+  ? M
+  : never
 
-export type ErrorOnOptions = 'error' | 'string' | 'boolean'
+export type MappedErrors<M extends Record<string, unknown>> = M extends FieldMap<M>
+  ? {
+      [K in keyof M]: M[K] extends Field<infer T, infer E> ? FieldError<T, E> : never
+    }
+  : never
+
+export type Form<M extends Record<string, unknown>, S extends (...args: any[]) => any> = {
+  fields: FieldMap<M>
+  errors: Array<MappedErrors<M>[keyof MappedErrors<M>]>
+  submit: (...args: Parameters<S>) => S extends undefined ? void : ReturnType<S>
+  isChanged: boolean
+  isBlurred: boolean
+  isSubmitted: boolean
+  isError: boolean
+  isAllError: boolean
+  isAllChanged: boolean
+  isAllBlurred: boolean
+  isAllValid: boolean
+}
