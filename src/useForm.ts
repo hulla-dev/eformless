@@ -1,51 +1,35 @@
 import { useState } from 'react'
-import { FieldType, FormFields, FormType } from './types'
-import { notUndefined } from './helpers/typeguards'
+import { FieldMap, Form, MappedErrors } from './types'
 import { flatten } from './helpers/arrays'
-import { assign, remove, values } from './helpers/objects'
-
-type MergedKeys<T, O> = Array<keyof T & keyof O>
-type Removed<T, O> = MergedKeys<T, O>
+import { values } from './helpers/objects'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const useForm = <T extends FieldType<any>[]>(...fields: T): FormType<T> => {
-  const groupedFields = fields.reduce(
-    (fieldsObject, field) => ({
-      ...fieldsObject,
-      [field.name]: field,
-    }),
-    {} as FormFields<T>,
-  )
-  const [addedFields, setAddedFields] = useState<FormFields<T>>({} as FormFields<T>)
-  const [removedFields, setRemovedFields] = useState<
-    Removed<typeof addedFields, typeof groupedFields>
-  >([] as Removed<typeof addedFields, typeof groupedFields>)
+export const useForm = <M extends Record<string, unknown>, S extends (...args: any[]) => any>(
+  fields: FieldMap<M>,
+  submit?: S,
+): Form<M, S> => {
+  const [submitted, isSubmitted] = useState(false)
+  const onSubmit = (...args: Parameters<S>) => {
+    isSubmitted(true)
+    if (submit) {
+      return submit(...args)
+    }
+    return
+  }
   return {
-    fields: remove(assign(groupedFields, addedFields), ...removedFields) as FormFields<T>,
-    add: <V>(field: FieldType<V>) =>
-      setAddedFields((prev) => assign(prev, { [field.name]: field })),
-    remove: (fieldName: keyof typeof fields | keyof typeof addedFields) =>
-      setRemovedFields((prev) => [...prev, fieldName]),
-    changed: values(fields).some((field) => (field as FieldType<unknown>).changed),
-    blurred: values(fields).some(
-      (field) => (field as FieldType<FormFields<T>[keyof FormFields<T>]>).blurred,
-    ),
-    allChanged: values(fields).every(
-      (field) => (field as FieldType<FormFields<T>[keyof FormFields<T>]>).changed,
-    ),
-    allBlurred: values(fields).every(
-      (field) => (field as FieldType<FormFields<T>[keyof FormFields<T>]>).blurred,
-    ),
-    error: flatten(
-      values(fields).map(
-        (field) => (field as FieldType<FormFields<T>[keyof FormFields<T>]>).errors || [],
-      ),
-    ).some(notUndefined),
+    fields,
     errors: flatten(
-      values(fields)
-        .map((field) => (field as FieldType<FormFields<T>[keyof FormFields<T>]>).errors)
-        .filter(notUndefined),
-    ),
+      values(fields).map(({ errors }) => errors || []),
+    ) as MappedErrors<M>[keyof MappedErrors<M>][],
+    isChanged: values(fields).some(({ isChanged }) => isChanged),
+    isBlurred: values(fields).some(({ isBlurred }) => isBlurred),
+    isError: values(fields).some(({ isError }) => isError),
+    isAllChanged: values(fields).every(({ isChanged }) => isChanged),
+    isAllBlurred: values(fields).every(({ isBlurred }) => isBlurred),
+    isAllError: values(fields).every(({ isError }) => isError),
+    isAllValid: values(fields).every(({ isError }) => !isError),
+    submit: onSubmit,
+    isSubmitted: submitted,
   }
 }
 
