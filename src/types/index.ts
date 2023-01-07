@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ChangeEvent } from 'react'
 import type { NativeSyntheticEvent, TextInputChangeEventData } from 'react-native'
 
@@ -25,7 +26,7 @@ export type CheckFunction<T> = (value: T) => any
 export type Field<T, E = Error, C extends CheckFunction<T> = CheckFunction<T>> = {
   value: T
   name: string
-  checkResults: ReturnType<C>[]
+  checkResults: Array<ReturnType<C> | FieldError<T, E>>
   error?: FieldError<T, E>
   errors?: FieldError<T, E>[]
   isError: boolean

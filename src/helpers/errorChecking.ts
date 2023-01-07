@@ -53,27 +53,29 @@ const isError = <T, C extends CheckFunction<T>, E = Error>(
   error: ErrorWithInternal<T, E> | ReturnType<C>,
 ): error is ErrorWithInternal<T, E> => !!(error as ErrorWithInternal<T, E>)?.INTENRAL_IS_ERROR
 
-const isPassed = <T, C extends CheckFunction<T>, E = Error>(
-  error: ErrorWithInternal<T, E> | ReturnType<C>,
-): error is ReturnType<C> => !isError(error)
+const removeInternalFlag = <T, C extends CheckFunction<T>, E = Error>(
+  checkResults: ErrorWithInternal<T, E> | ReturnType<C>,
+): FieldError<T, E> | ReturnType<C> => {
+  const { INTENRAL_IS_ERROR, ...rest } = checkResults as ErrorWithInternal<T, E>
+  if (INTENRAL_IS_ERROR) {
+    return rest as FieldError<T, E>
+  }
+  return rest as ReturnType<C>
+}
 
 export const checkErrors = <T, C extends CheckFunction<T>, E = Error>(
   value: T,
   name: string,
   checkFunctions: C[],
   config: Config,
-): [FieldError<T, E>[], ReturnType<C>[]] => {
+): [FieldError<T, E>[], Array<FieldError<T, E> | ReturnType<C>>] => {
   const results = checkFunctions.map((checkfn) =>
     invokeCheckFunction<T, C, E>(value, name, checkfn, config),
   )
 
   const internalErrors: ErrorWithInternal<T, E>[] = results.filter((e) => isError(e))
-  const passed = results.filter((e) => isPassed(e)) as ReturnType<C>[]
-  const errors: FieldError<T, E>[] = internalErrors.map((e) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { INTENRAL_IS_ERROR, ...rest } = e
-    return rest as FieldError<T, E>
-  })
+  const errors: FieldError<T, E>[] = internalErrors.map(removeInternalFlag)
+  const checkResults = results.map(removeInternalFlag)
 
-  return [errors, passed]
+  return [errors, checkResults]
 }
