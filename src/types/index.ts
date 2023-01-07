@@ -23,7 +23,42 @@ export type EventHandler<T> = (event: HandlerEvents<T>) => void
 
 export type CheckFunction<T> = (value: T) => any
 
-export type Field<T, E = Error, C extends CheckFunction<T> = CheckFunction<T>> = {
+type ValueKey<K extends Partial<Config['valueKey'] | undefined>> = K extends undefined ? 'value' : K
+
+type OptionalProps<T, X extends Partial<Config>> = {
+  [K in ValueKey<X['valueKey']>]: T
+} & X['inferKeyboard'] extends true
+  ? X['platform'] extends 'web'
+    ? {
+        inputMethod: 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search'
+      }
+    : {
+        keyboardType:
+          | 'default'
+          | 'email-address'
+          | 'numeric'
+          | 'phone-pad'
+          | 'decimal-pad'
+          | 'web-search'
+          | 'url'
+      }
+  : Record<string, never> & X['inferAutoCapitalize'] extends true
+  ? { autoCapitalize: 'none' | 'sentences' | 'words' | 'characters' }
+  : Record<string, never>
+
+export type Props<
+  T,
+  E = Error,
+  C extends CheckFunction<T> = CheckFunction<T>,
+  X extends Partial<Config> = Config,
+> = Pick<Field<T, E, C, X>, 'name' | 'onChange' | 'onBlur'> & OptionalProps<T, X>
+
+export type Field<
+  T,
+  E = Error,
+  C extends CheckFunction<T> = CheckFunction<T>,
+  X extends Partial<Config> = Config,
+> = {
   value: T
   name: string
   checkResults: Array<ReturnType<C> | FieldError<T, E>>
@@ -34,22 +69,22 @@ export type Field<T, E = Error, C extends CheckFunction<T> = CheckFunction<T>> =
   isBlurred: boolean
   onChange: EventHandler<T>
   onBlur: EventHandler<T>
-  props: {
-    name: string
-    value: T
-    onChange: EventHandler<T>
-    onBlur: EventHandler<T>
-  }
+  props: Props<T, E, C, X>
 }
 
 export type ErrorOn = 'error' | 'string' | 'boolean'
+
+export type Platform = 'web' | 'native'
 
 export type Config = {
   errorOn: ErrorOn[]
   checkAdapter: ((value: any) => any) | null
   comparator: <T>(a: T, b: T) => boolean
-  inferKeyboard: boolean
   coerceBack: boolean
+  inferKeyboard: boolean
+  inferAutoCapitalize: boolean
+  platform: Platform
+  valueKey: string
   warnOnTypeMismatch: boolean
 }
 
@@ -60,7 +95,7 @@ export type CoercedValue<
 > = X['coerceBack'] extends true ? T : Y extends 'radio' | 'checkbox' ? boolean : string
 
 export type FieldMap<M extends Record<string, unknown>> = M extends {
-  [K in keyof M]: M[K] extends Field<infer T, infer E, infer C> ? Field<T, E, C> : never
+  [K in keyof M]: M[K] extends Field<infer T, infer E, infer C, infer X> ? Field<T, E, C, X> : never
 }
   ? M
   : never
