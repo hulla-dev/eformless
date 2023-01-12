@@ -11,7 +11,7 @@ export const useField = <
   T,
   E = Error,
   C extends CheckFunction<T> = CheckFunction<T>,
-  X extends Partial<Config> = Partial<Config>,
+  X extends Partial<Config<'field'>> = Partial<Config<'field'>>,
 >(
   name: string,
   initialValue: T,
@@ -20,10 +20,14 @@ export const useField = <
 ) => {
   /* --------------------- 1. State and config definitions -------------------- */
   const defaultConfig = getConfig()
-  const config =
+  const config: Config<'field'> =
     typeof configOrCheckFunction === 'object'
-      ? { ...defaultConfig, ...configOrCheckFunction }
-      : defaultConfig
+      ? {
+          ...defaultConfig,
+          ...configOrCheckFunction,
+          ready: configOrCheckFunction.ready ?? initialValue !== undefined,
+        }
+      : { ...defaultConfig, ready: true }
   const checks =
     typeof configOrCheckFunction === 'function'
       ? [configOrCheckFunction, ...checkFunctions]
@@ -33,6 +37,7 @@ export const useField = <
   const [initialErrors, initialCheckResults] = checkErrors<T, C, E>(value, name, checks, config)
   const [errors, setErrors] = useState<FieldError<T, E>[]>(initialErrors)
   const [checkResults, setCheckResults] = useState(initialCheckResults)
+  const [isDifferent, setIsDifferent] = useState<boolean>(false)
   const [isChanged, setIsChanged] = useState<boolean>(false)
   const [isBlurred, setIsBlurred] = useState<boolean>(false)
 
@@ -47,7 +52,7 @@ export const useField = <
         if (typeof newVal !== typeof value) {
           console.warn(
             // eslint-disable-next-line max-len
-            `[eformless]: Value of field "${name}" was changed from ${typeof value} to ${typeof newVal}. This likely happens because you have disabled "coerceBack" parameter in your config for web elements or you are using a custom input component that mimics the HTMLInputElement structure, but that does not pass the value prop to the underlying input element. If you wish to disable this warning, set "warnOnTypeMismatch" to false in your config.`,
+            `[eformless]: Value of field "${name}" was changed from ${typeof value} to ${typeof newVal}. This likely happens because you specified a field with two possible types or you have used a native web element and disabled "coerceBack" parameter. If this behaviour is intentional and wish to disable this warning, set "warnOnTypeMismatch" to false in your config (for either this field or entire eformless)`,
           )
         }
       }
@@ -61,6 +66,11 @@ export const useField = <
         }
       } else {
         setValue(newVal as T)
+      }
+      if (initialValue !== newVal) {
+        setIsDifferent(true)
+      } else {
+        setIsDifferent(false)
       }
       setErrors(newErrors)
       setCheckResults(newChecked)
@@ -91,6 +101,7 @@ export const useField = <
     isError: errors.length > 0,
     isChanged,
     isBlurred,
+    isDifferent,
     onChange,
     onBlur,
     props,

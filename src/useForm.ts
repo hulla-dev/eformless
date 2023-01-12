@@ -24,10 +24,12 @@ export const useForm = <M extends Record<string, unknown>, S extends (...args: a
     isChanged: values(fields).some(({ isChanged }) => isChanged),
     isBlurred: values(fields).some(({ isBlurred }) => isBlurred),
     isError: values(fields).some(({ isError }) => isError),
+    isDifferent: values(fields).some(({ isDifferent }) => isDifferent),
     isAllChanged: values(fields).every(({ isChanged }) => isChanged),
     isAllBlurred: values(fields).every(({ isBlurred }) => isBlurred),
     isAllError: values(fields).every(({ isError }) => isError),
     isAllValid: values(fields).every(({ isError }) => !isError),
+    isAllDifferent: values(fields).every(({ isDifferent }) => isDifferent),
     submit: onSubmit,
     isSubmitted: submitted,
   }
