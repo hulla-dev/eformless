@@ -1,7 +1,7 @@
 {
   "name": "eformless",
-  "version": "2.0.2",
-  "description": "Write your react forms effortlessly",
+  "version": "2.0.3",
+  "description": "How input handling was supposed to be all along ✅",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "files": [
