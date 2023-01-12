@@ -16,7 +16,7 @@ const comparator = <T>(a: T, b: T) => {
   return Object.is(a, b)
 }
 
-export let config: Config = {
+export let config: Config<'global'> = {
   allow: undefined,
   errorOn: ['error'],
   coerceBack: true,
@@ -29,11 +29,11 @@ export let config: Config = {
   warnOnTypeMismatch: true,
 }
 
-export const setConfig = (newConfig: Partial<Config>): void => {
+export const setConfig = (newConfig: Partial<Config<'global'>>): void => {
   config = {
     ...config,
     ...newConfig,
   }
 }
 
-export const getConfig = (): Config => config
+export const getConfig = (): Config<'global'> => config

@@ -67,6 +67,7 @@ export type Field<
   isError: boolean
   isChanged: boolean
   isBlurred: boolean
+  isDifferent: boolean
   onChange: EventHandler<T>
   onBlur: EventHandler<T>
   props: Props<T, E, C, X>
@@ -76,7 +77,7 @@ export type ErrorOn = 'error' | 'string' | 'boolean'
 
 export type Platform = 'web' | 'native'
 
-export type Config = {
+type BaseConfig = {
   allow: undefined | ((value: any) => boolean)
   errorOn: ErrorOn[]
   checkAdapter: ((value: any) => any) | undefined
@@ -88,6 +89,10 @@ export type Config = {
   valueKey: string
   warnOnTypeMismatch: boolean
 }
+
+export type Config<T extends 'global' | 'field' = 'field'> = T extends 'field'
+  ? BaseConfig & { ready: boolean }
+  : BaseConfig
 
 export type CoercedValue<
   T,
@@ -115,8 +120,10 @@ export type Form<M extends Record<string, unknown>, S extends (...args: any[]) =
   isBlurred: boolean
   isSubmitted: boolean
   isError: boolean
+  isDifferent: boolean
   isAllError: boolean
   isAllChanged: boolean
   isAllBlurred: boolean
   isAllValid: boolean
+  isAllDifferent: boolean
 }
